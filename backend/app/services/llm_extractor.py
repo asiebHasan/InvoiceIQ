@@ -107,12 +107,16 @@ async def extract_with_gemini(text: str, document_type: str) -> dict | None:
         return None
 
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
         prompt = EXTRACTION_PROMPTS.get(document_type, EXTRACTION_PROMPTS["invoice"])
-        response = await model.generate_content_async(f"{prompt}\n\nDocument text:\n{text[:8000]}")
+        response = client.models.generate_content(
+            model=settings.GEMINI_MODEL,
+            contents=f"{prompt}\n\nDocument text:\n{text[:8000]}",
+        )
 
         raw = response.text.strip()
         if raw.startswith("```"):

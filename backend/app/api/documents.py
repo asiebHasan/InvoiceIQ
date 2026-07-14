@@ -57,8 +57,8 @@ async def upload_documents(files: list[UploadFile] = File(...), db: AsyncSession
         await db.flush()
 
         # Dispatch Celery task
-        from app.workers.document_tasks import process_document_task
-        process_document_task.delay(doc.id)
+        from celery_worker import celery_app
+        celery_app.send_task("process_document", args=[doc.id])
 
         results.append(DocumentUploadResponse(
             id=doc.id,
@@ -204,8 +204,8 @@ async def reprocess_document(doc_id: str, db: AsyncSession = Depends(get_db)):
     doc.updated_at = datetime.utcnow()
     await db.commit()
 
-    from app.workers.document_tasks import process_document_task
-    process_document_task.delay(doc_id)
+    from celery_worker import celery_app
+    celery_app.send_task("process_document", args=[doc_id])
 
     return ProcessingJobResponse(
         id=uuid.uuid4().hex,
