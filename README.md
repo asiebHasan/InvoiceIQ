@@ -16,10 +16,10 @@ Opens at [http://localhost:3000](http://localhost:3000). Redis, OCR, and poppler
 - Python 3.11+
 - Node.js 18+
 - Redis
-- Gemini API key (free) — get one at https://aistudio.google.com/apikey
+- Hugging Face API key (free) — get one at https://huggingface.co/settings/tokens
 
-#### 1. Get Free Gemini API Key
-Sign up at https://aistudio.google.com and generate an API key. No credit card needed.
+#### 1. Get Free Hugging Face API Key
+Sign up at https://huggingface.co and generate a read token at https://huggingface.co/settings/tokens.
 
 #### 2. Backend Setup
 ```bash
@@ -27,14 +27,14 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp ../.env.example ../.env  # Edit .env and add your GEMINI_API_KEY
+cp .env.example .env  # Edit .env and add your HF_API_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
 #### 3. Start Celery Worker
 ```bash
 cd backend
-celery -A celery_worker worker -l info
+celery -A celery_worker worker -l info --pool=solo
 ```
 
 #### 4. Frontend Setup
@@ -74,7 +74,7 @@ wsl sudo service redis-server start
 - **Backend:** Python FastAPI + Celery + Redis
 - **Frontend:** React/Next.js + Tailwind CSS + Recharts
 - **PDF Extraction:** pdfplumber (machine-generated) + PaddleOCR/Tesseract (scanned)
-- **LLM:** Gemini 2.5 Flash free tier (primary), Ollama local (optional fallback)
+- **LLM:** Hugging Face Inference API (primary, free), Gemini (fallback), Ollama (local fallback)
 - **Database:** SQLite (dev) / PostgreSQL (prod)
 
 ## API Endpoints

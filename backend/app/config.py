@@ -13,9 +13,14 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_UPLOAD_SIZE_MB: int = 50
 
-    # LLM (Gemini is primary for low-RAM machines, Ollama is optional)
+    # LLM — Hugging Face (primary, free Inference API)
+    # Get free API key at: https://huggingface.co/settings/tokens
+    HF_API_KEY: str = ""
+    HF_MODEL: str = "meta-llama/Llama-3.3-70B-Instruct"
+
+    # LLM — Gemini (fallback)
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-2.0-flash-lite"
 
     # Ollama (optional — only if you have 8GB+ free RAM)
     OLLAMA_BASE_URL: str = "http://localhost:11434"

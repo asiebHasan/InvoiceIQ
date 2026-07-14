@@ -78,6 +78,69 @@ Return ONLY the JSON object, no markdown, no explanation.""",
 }
 
 
+async def extract_with_huggingface(text: str, document_type: str) -> dict | None:
+    if not settings.HF_API_KEY:
+        return None
+
+    prompt = EXTRACTION_PROMPTS.get(document_type, EXTRACTION_PROMPTS["invoice"])
+    full_prompt = f"{prompt}\n\nDocument text:\n{text[:8000]}"
+
+    try:
+        from huggingface_hub import InferenceClient
+
+        client = InferenceClient(token=settings.HF_API_KEY)
+        response = client.chat_completion(
+            model=settings.HF_MODEL,
+            messages=[{"role": "user", "content": full_prompt}],
+            max_tokens=2048,
+            temperature=0.1,
+        )
+
+        raw = response.choices[0].message.content.strip()
+
+        # Extract JSON from response (may be wrapped in markdown)
+        if "```json" in raw:
+            raw = raw.split("```json", 1)[1].split("```", 1)[0]
+        elif "```" in raw:
+            raw = raw.split("```", 1)[1].split("```", 1)[0]
+
+        # Find JSON object in the response
+        start = raw.find("{")
+        end = raw.rfind("}") + 1
+        if start != -1 and end > start:
+            return json.loads(raw[start:end])
+
+        return None
+    except Exception as e:
+        print(f"HuggingFace extraction failed: {e}")
+        return None
+
+
+async def extract_with_gemini(text: str, document_type: str) -> dict | None:
+    if not settings.GEMINI_API_KEY:
+        return None
+
+    try:
+        from google import genai
+
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+        prompt = EXTRACTION_PROMPTS.get(document_type, EXTRACTION_PROMPTS["invoice"])
+        response = client.models.generate_content(
+            model=settings.GEMINI_MODEL,
+            contents=f"{prompt}\n\nDocument text:\n{text[:8000]}",
+        )
+
+        raw = response.text.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
+
+        return json.loads(raw)
+    except Exception as e:
+        print(f"Gemini extraction failed: {e}")
+        return None
+
+
 async def extract_with_ollama(text: str, document_type: str) -> dict | None:
     prompt = EXTRACTION_PROMPTS.get(document_type, EXTRACTION_PROMPTS["invoice"])
     full_prompt = f"{prompt}\n\nDocument text:\n{text[:8000]}"
@@ -102,34 +165,13 @@ async def extract_with_ollama(text: str, document_type: str) -> dict | None:
         return None
 
 
-async def extract_with_gemini(text: str, document_type: str) -> dict | None:
-    if not settings.GEMINI_API_KEY:
-        return None
-
-    try:
-        from google import genai
-        from google.genai import types
-
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
-        prompt = EXTRACTION_PROMPTS.get(document_type, EXTRACTION_PROMPTS["invoice"])
-        response = client.models.generate_content(
-            model=settings.GEMINI_MODEL,
-            contents=f"{prompt}\n\nDocument text:\n{text[:8000]}",
-        )
-
-        raw = response.text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
-
-        return json.loads(raw)
-    except Exception as e:
-        print(f"Gemini extraction failed: {e}")
-        return None
-
-
 async def extract_structured_data(text: str, document_type: str) -> dict | None:
-    # Gemini first — zero local resources, works on any machine
+    # HuggingFace first — free Inference API, no local resources needed
+    result = await extract_with_huggingface(text, document_type)
+    if result:
+        return result
+
+    # Gemini fallback
     result = await extract_with_gemini(text, document_type)
     if result:
         return result

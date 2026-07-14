@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +13,14 @@ from app.config import settings
 
 
 async def process_document(db: AsyncSession, document_id: str):
+    def parse_date(val):
+        if not val or not isinstance(val, str):
+            return None
+        try:
+            return date.fromisoformat(val.strip())
+        except (ValueError, AttributeError):
+            return None
+
     job = ProcessingJob(document_id=document_id, status="running", started_at=datetime.utcnow())
     db.add(job)
     await db.flush()
@@ -117,8 +125,8 @@ async def process_document(db: AsyncSession, document_id: str):
             customer_name=extracted.get("customer_name"),
             customer_address=extracted.get("customer_address"),
             invoice_number=extracted.get("invoice_number"),
-            invoice_date=extracted.get("invoice_date"),
-            due_date=extracted.get("due_date"),
+            invoice_date=parse_date(extracted.get("invoice_date")),
+            due_date=parse_date(extracted.get("due_date")),
             total_amount=extracted.get("total_amount"),
             subtotal=extracted.get("subtotal"),
             tax_amount=extracted.get("tax_amount"),
