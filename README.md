@@ -16,12 +16,10 @@ Opens at [http://localhost:3000](http://localhost:3000). Redis, OCR, and poppler
 - Python 3.11+
 - Node.js 18+
 - Redis
-- Ollama (for local LLM)
+- Gemini API key (free) — get one at https://aistudio.google.com/apikey
 
-#### 1. Install Ollama & Pull Model
-```bash
-ollama pull qwen2.5:14b
-```
+#### 1. Get Free Gemini API Key
+Sign up at https://aistudio.google.com and generate an API key. No credit card needed.
 
 #### 2. Backend Setup
 ```bash
@@ -29,6 +27,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+cp ../.env.example ../.env  # Edit .env and add your GEMINI_API_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -47,6 +46,11 @@ npm run dev
 
 #### 5. Open
 Visit [http://localhost:3000](http://localhost:3000)
+
+**Optional — Local LLM (Ollama):** If you have 8GB+ free RAM, you can also run Ollama as a fallback:
+```bash
+ollama pull qwen2.5:3b
+```
 
 ---
 
@@ -70,7 +74,7 @@ wsl sudo service redis-server start
 - **Backend:** Python FastAPI + Celery + Redis
 - **Frontend:** React/Next.js + Tailwind CSS + Recharts
 - **PDF Extraction:** pdfplumber (machine-generated) + PaddleOCR/Tesseract (scanned)
-- **LLM:** Ollama (qwen2.5) local, Gemini free tier fallback
+- **LLM:** Gemini 2.5 Flash free tier (primary), Ollama local (optional fallback)
 - **Database:** SQLite (dev) / PostgreSQL (prod)
 
 ## API Endpoints

@@ -125,11 +125,13 @@ async def extract_with_gemini(text: str, document_type: str) -> dict | None:
 
 
 async def extract_structured_data(text: str, document_type: str) -> dict | None:
-    result = await extract_with_ollama(text, document_type)
+    # Gemini first — zero local resources, works on any machine
+    result = await extract_with_gemini(text, document_type)
     if result:
         return result
 
-    result = await extract_with_gemini(text, document_type)
+    # Ollama fallback — for machines with enough RAM or when offline
+    result = await extract_with_ollama(text, document_type)
     if result:
         return result
 

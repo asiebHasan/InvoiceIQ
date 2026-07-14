@@ -13,13 +13,13 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_UPLOAD_SIZE_MB: int = 50
 
-    # Ollama
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "qwen2.5:14b"
-
-    # Gemini fallback
+    # LLM (Gemini is primary for low-RAM machines, Ollama is optional)
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
+
+    # Ollama (optional — only if you have 8GB+ free RAM)
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "qwen2.5:3b"
 
     # Processing
     CLASSIFICATION_CONFIDENCE_THRESHOLD: float = 0.7
