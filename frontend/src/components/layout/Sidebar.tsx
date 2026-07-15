@@ -7,6 +7,7 @@ const nav = [
   { href: '/', label: 'Dashboard', icon: '📊' },
   { href: '/upload', label: 'Upload', icon: '📤' },
   { href: '/documents', label: 'Documents', icon: '📄' },
+  { href: '/chat', label: 'Chat', icon: '💬' },
   { href: '/export', label: 'Export', icon: '📥' },
 ];
 

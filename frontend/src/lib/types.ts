@@ -74,3 +74,8 @@ export interface TimelinePoint {
   date: string;
   count: number;
 }
+
+export interface ChatResponse {
+  answer: string;
+  sources: { filename: string; doc_id: string }[];
+}

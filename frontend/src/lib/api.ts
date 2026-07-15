@@ -59,4 +59,11 @@ export const api = {
 
   // Health
   getHealth: () => request<Record<string, string>>('/api/health/services'),
+
+  // Chat
+  chat: (message: string, documentId?: string) =>
+    request<import('./types').ChatResponse>('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, document_id: documentId || null }),
+    }),
 };

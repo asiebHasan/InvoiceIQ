@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_db
-from app.api import documents, export, dashboard, health
+from app.api import documents, export, dashboard, health, chat
 
 
 @asynccontextmanager
@@ -32,3 +32,4 @@ app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
