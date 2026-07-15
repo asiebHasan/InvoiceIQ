@@ -139,6 +139,35 @@ async def delete_session(session_id: str, db: AsyncSession = Depends(get_db)):
     return {"message": "Session deleted"}
 
 
+class RenameSessionRequest(BaseModel):
+    title: str
+
+
+@router.patch("/sessions/{session_id}", response_model=SessionResponse)
+async def rename_session(session_id: str, body: RenameSessionRequest, db: AsyncSession = Depends(get_db)):
+    session = await db.get(ChatSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    session.title = body.title
+    session.updated_at = datetime.utcnow()
+    await db.commit()
+
+    msg_result = await db.execute(
+        select(ChatMessage).where(ChatMessage.session_id == session_id)
+    )
+    count = len(msg_result.scalars().all())
+
+    return SessionResponse(
+        id=session.id,
+        title=session.title,
+        document_id=session.document_id,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        message_count=count,
+    )
+
+
 @router.post("/sessions/{session_id}/messages", response_model=MessageResponse)
 async def send_message(session_id: str, body: SendMessageRequest, db: AsyncSession = Depends(get_db)):
     session = await db.get(ChatSession, session_id)
@@ -154,11 +183,8 @@ async def send_message(session_id: str, body: SendMessageRequest, db: AsyncSessi
     db.add(user_msg)
     session.updated_at = datetime.utcnow()
 
-    # Update title from first message
-    msg_count_result = await db.execute(
-        select(ChatMessage).where(ChatMessage.session_id == session_id)
-    )
-    if len(msg_count_result.scalars().all()) == 0:
+    # Update title from first message if still default
+    if session.title in ("New Chat", ""):
         session.title = body.message[:100]
 
     await db.flush()

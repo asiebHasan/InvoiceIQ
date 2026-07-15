@@ -11,7 +11,10 @@ export default function ChatBox() {
   const [loading, setLoading] = useState(false);
   const [docs, setDocs] = useState<Document[]>([]);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   const loadSessions = useCallback(async () => {
     const res = await api.listChatSessions();
@@ -102,6 +105,24 @@ export default function ChatBox() {
     }
   };
 
+  const startRename = (session: ChatSession, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenamingId(session.id);
+    setRenameValue(session.title);
+    setTimeout(() => renameInputRef.current?.focus(), 50);
+  };
+
+  const confirmRename = async () => {
+    if (renamingId && renameValue.trim()) {
+      await api.renameChatSession(renamingId, renameValue.trim());
+      if (activeSession?.id === renamingId) {
+        setActiveSession((prev) => prev ? { ...prev, title: renameValue.trim() } : prev);
+      }
+      await loadSessions();
+    }
+    setRenamingId(null);
+  };
+
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
     const now = new Date();
@@ -134,14 +155,35 @@ export default function ChatBox() {
             {sessions.map((s) => (
               <div
                 key={s.id}
-                onClick={() => handleSelectSession(s.id)}
+                onClick={() => { if (renamingId !== s.id) handleSelectSession(s.id); }}
                 className={`group flex items-center gap-2 px-3 py-2.5 cursor-pointer border-b border-gray-100 hover:bg-gray-50 ${
                   activeSession?.id === s.id ? 'bg-brand-50 border-l-2 border-l-brand-600' : ''
                 }`}
               >
                 <span className="text-lg shrink-0">💬</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{s.title}</p>
+                  {renamingId === s.id ? (
+                    <input
+                      ref={renameInputRef}
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={confirmRename}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') confirmRename();
+                        if (e.key === 'Escape') setRenamingId(null);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full text-sm font-medium text-gray-900 border border-brand-400 rounded px-1 py-0.5 focus:outline-none"
+                    />
+                  ) : (
+                    <p
+                      onDoubleClick={(e) => startRename(s, e)}
+                      className="text-sm font-medium text-gray-900 truncate"
+                      title="Double-click to rename"
+                    >
+                      {s.title}
+                    </p>
+                  )}
                   <p className="text-xs text-gray-400">{s.message_count} messages · {formatTime(s.updated_at)}</p>
                 </div>
                 <button

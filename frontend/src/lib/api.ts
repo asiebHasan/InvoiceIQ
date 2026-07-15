@@ -72,6 +72,11 @@ export const api = {
     request<import('./types').ChatSessionDetail>(`/api/chat/sessions/${id}`),
   deleteChatSession: (id: string) =>
     request<{ message: string }>(`/api/chat/sessions/${id}`, { method: 'DELETE' }),
+  renameChatSession: (id: string, title: string) =>
+    request<import('./types').ChatSession>(`/api/chat/sessions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
+    }),
   sendChatMessage: (sessionId: string, message: string) =>
     request<import('./types').ChatMessage>(`/api/chat/sessions/${sessionId}/messages`, {
       method: 'POST',

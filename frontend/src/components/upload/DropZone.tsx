@@ -65,6 +65,7 @@ export default function DropZone({ onUpload, disabled }: Props) {
       >
         <input
           ref={inputRef}
+          id="file-upload"
           type="file"
           accept=".pdf"
           multiple
