@@ -21,6 +21,11 @@ export const api = {
     request<{ message: string }>(`/api/documents/${id}`, { method: 'DELETE' }),
   reprocessDocument: (id: string) =>
     request<any>(`/api/documents/${id}/reprocess`, { method: 'POST' }),
+  resolveAnomaly: (docId: string, anomalyId: string, isResolved: boolean) =>
+    request<import('./types').Anomaly>(`/api/documents/${docId}/anomalies/${anomalyId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_resolved: isResolved }),
+    }),
 
   // Upload
   uploadDocuments: async (files: File[]) => {

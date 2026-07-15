@@ -71,9 +71,18 @@ export default function DocumentDetailPage() {
 
       {doc.anomalies.length > 0 && (
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Anomalies Detected</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+            Anomalies Detected
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              ({doc.anomalies.filter((a) => !a.is_resolved).length} unresolved)
+            </span>
+          </h2>
           <div className="space-y-2">
-            {doc.anomalies.map((a) => <AnomalyBadge key={a.id} anomaly={a} />)}
+            {doc.anomalies.map((a) => (
+              <AnomalyBadge key={a.id} anomaly={a} documentId={doc.id} onResolve={() => {
+                api.getDocument(id).then(setDoc);
+              }} />
+            ))}
           </div>
         </div>
       )}

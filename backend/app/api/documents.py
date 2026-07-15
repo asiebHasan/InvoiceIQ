@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -185,6 +186,34 @@ async def download_document(doc_id: str, db: AsyncSession = Depends(get_db)):
         filename=doc.filename,
         media_type="application/pdf",
     )
+
+
+class ResolveAnomalyRequest(BaseModel):
+    is_resolved: bool
+
+
+@router.patch("/{doc_id}/anomalies/{anomaly_id}")
+async def resolve_anomaly(
+    doc_id: str,
+    anomaly_id: str,
+    body: ResolveAnomalyRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    doc = await db.get(Document, doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    result = await db.execute(
+        select(Anomaly).where(Anomaly.id == anomaly_id, Anomaly.document_id == doc_id)
+    )
+    anomaly = result.scalar_one_or_none()
+    if not anomaly:
+        raise HTTPException(status_code=404, detail="Anomaly not found")
+
+    anomaly.is_resolved = body.is_resolved
+    await db.commit()
+
+    return AnomalyResponse.model_validate(anomaly)
 
 
 @router.delete("/{doc_id}")
