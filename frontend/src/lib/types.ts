@@ -79,3 +79,29 @@ export interface ChatResponse {
   answer: string;
   sources: { filename: string; doc_id: string }[];
 }
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  document_id: string | null;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources: { filename: string; doc_id: string }[] | null;
+  created_at: string;
+}
+
+export interface ChatSessionDetail {
+  id: string;
+  title: string;
+  document_id: string | null;
+  created_at: string;
+  updated_at: string;
+  messages: ChatMessage[];
+}

@@ -61,9 +61,20 @@ export const api = {
   getHealth: () => request<Record<string, string>>('/api/health/services'),
 
   // Chat
-  chat: (message: string, documentId?: string) =>
-    request<import('./types').ChatResponse>('/api/chat', {
+  listChatSessions: () =>
+    request<import('./types').ChatSession[]>('/api/chat/sessions'),
+  createChatSession: (documentId?: string) =>
+    request<import('./types').ChatSessionDetail>('/api/chat/sessions', {
       method: 'POST',
-      body: JSON.stringify({ message, document_id: documentId || null }),
+      body: JSON.stringify({ document_id: documentId || null }),
+    }),
+  getChatSession: (id: string) =>
+    request<import('./types').ChatSessionDetail>(`/api/chat/sessions/${id}`),
+  deleteChatSession: (id: string) =>
+    request<{ message: string }>(`/api/chat/sessions/${id}`, { method: 'DELETE' }),
+  sendChatMessage: (sessionId: string, message: string) =>
+    request<import('./types').ChatMessage>(`/api/chat/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
     }),
 };
